@@ -1,0 +1,14 @@
+{
+  "name": "unseen-smoke",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The on-chain smoke of Unseen against GenLayer Studio (chain 61999). The contract needs none of this.",
+  "type": "module",
+  "scripts": {
+    "smoke": "node tests/on_chain/smoke.mjs"
+  },
+  "dependencies": {
+    "genlayer-js": "1.1.8",
+    "viem": "2.56.8"
+  }
+}

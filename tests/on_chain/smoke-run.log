@@ -1,0 +1,64 @@
+[11:55:26] F 0x3274E0100B5fFCE79Bc864A60921414d8E9DdB7e  the finder
+           O 0x40ee98f1590091CB2BaEC37C222542BF6295F928  the owner of the backpack
+           I 0xB7BfCA4AEBF60727a564B15627de7B8C4197161C  an impostor
+           S 0x3CC7C3Fc6Bc8bd80675972237554A50046255a69  a stranger who lost a scarf
+
+[11:55:26] ---- phase A: deploy, two items posted, three claims sealed
+      Unseen at 0x36188D3A549300fd393471a4962F0E3336672d41
+PASS  the finder posts the backpack as I1, with the public notice and only the sha256 of the private notes  - 3 agree, 0 disagree, 2 idle  {"ok": true, "item": "I1", "finder": "0x3274e0100b5ffce79bc864a60921414d8e9ddb7e", "reward": "1000000000000000000", "pos
+PASS  the owner seals a claim on I1 with a deposit of exactly the reward (C2)  - 5 agree, 0 disagree, 0 idle  {"ok": true, "item": "I1", "claim": "C2", "deposit": "1000000000000000000", "reveal_from": 179128583
+PASS  the impostor seals a claim on I1 the same way (C1)  - 5 agree, 0 disagree, 0 idle  {"ok": true, "item": "I1", "claim": "C1", "deposit": "1000000000000000000", "reveal_from": 179128583
+PASS  the finder posts the scarf as I2  - 3 agree, 0 disagree, 2 idle  {"ok": true, "item": "I2", "finder": "0x3274e0100b5ffce79bc864a60921414d8e9ddb7e", "reward": "500000
+PASS  a claim sent with half the reward is refused, and the half comes back in the same transaction  - 4 agree, 0 disagree, 1 idle  send exactly the reward of 500000000000000000 atto with a claim on I2; this one sent 250000000000000000
+PASS  the stranger claims the scarf again with exactly its reward  - 3 agree, 0 disagree, 2 idle  {"ok": true, "item": "I2", "claim": "C3", "deposit": "500000000000000000", "reveal_from": 1791285922
+PASS  item(I1) holds two sealed claims, and neither description is anywhere on chain  - {"phase":"claiming","claims":2,"held":"2000000000000000000"}
+PASS  claim_record(C1), still sealed, shows its commitment and an empty description  - {"revealed":false,"description":""}
+
+[11:55:26] ---- phase B: the reveal window of I1
+PASS  the finder reveals the private notes, and they hash to what was posted  - 3 agree, 0 disagree, 2 idle  {"ok": true, "item": "I1", "hidden_revealed": true}
+PASS  the owner reveals the claim that names the carabiner keys and the bird sketchbook  - 4 agree, 0 disagree, 1 idle  {"ok": true, "item": "I1", "claim": "C2", "revealed": 1}
+PASS  the impostor tries to reveal a description naming the carabiner instead of the one sealed: refused, it does not hash  - 4 agree, 0 disagree, 1 idle  [EXPECTED] this description and salt do not hash to the commitment sealed as C1
+PASS  judge before the reveal deadline is refused  - 3 agree, 0 disagree, 2 idle  [EXPECTED] I1 can be judged once its reveal window closes, in 1484 seconds
+PASS  the impostor reveals the claim actually sealed: a laptop and a black leather wallet  - 3 agree, 0 disagree, 2 idle  {"ok": true, "item": "I1", "claim": "C1", "revealed": 2}
+PASS  a stranger may not reveal the finder's notes  - 4 agree, 0 disagree, 1 idle  [EXPECTED] only the finder of I1 may reveal its private notes
+
+[11:55:28] ---- phase C: the judgment of I1
+PASS  the validators carry one vector, in one consensus round  - 3 agree, 0 disagree, 2 idle  -> C1:no,C2:match
+PASS  the owner's claim is a match and the impostor's is not: C1:no,C2:match  - C1:no,C2:match
+PASS  I1 is returned and the owner is recorded  - {"status":"returned","owner":"0x40ee98f1590091cb2baec37c222542bf6295f928"}
+PASS  the finder is paid the owner's deposit as the reward and the impostor's deposit, in the same transaction  - {"f":"2000000000000000000","o":"0","i":"0"}
+PASS  a consumer reading item(I1) finds status returned and the owner's address  - {"status":"returned","owner":"0x40ee98f1590091cb2baec37c222542bf6295f928"}
+PASS  claim_record(C1): the impostor's description, read no, its deposit to the finder  - {"verdict":"no","outcome":"to finder"}
+
+[11:55:35] ---- phase D: the scarf, whose finder never reveals
+PASS  judge(I2) is refused because the finder never revealed the notes, and the refusal names lapse  - 3 agree, 0 disagree, 2 idle  [EXPECTED] the finder of I2 never revealed the private notes, so no claim can be judged against them; lapse(I2) returns 
+PASS  anyone may lapse I2, and the stranger's deposit comes back  - 3 agree, 0 disagree, 2 idle  {"ok": true, "item": "I2", "status": "lapsed", "returned": "500000000000000000", "claims": 1}
+
+[11:55:38] ---- phase E: the code read back, the views, the balances
+PASS  the code deployed at 0x36188D3A549300fd393471a4962F0E3336672d41 is byte for byte contracts/unseen.py  - 44368 bytes, sha256 ef0c2ea69af1a3e23314fc5f54d24a61fb295b2edd19cef93771c1a587d0b929
+PASS  stats(): two items, three claims, one returned, one lapsed, one refused claim, nothing held  - {"items":2,"claims":3,"open":0,"returned":1,"contested":0,"unclaimed":0,"lapsed":1,"held":"0","paid_to_finders":"2000000000000000000","returned_to_claimants":"500000000000000000","refused_claims":1}
+PASS  items(0, 20): both items, oldest first, with their endings  - ["I1:returned","I2:lapsed"]
+PASS  claims_of(I2) lists the stranger's one claim; the refused one was never a claim  - ["C3"]
+PASS  rules() publishes the comparison and the combine table in the contract's own words  - one verdict per revealed claim, in the order the claims were sealed: "C1:match,C2:no"
+PASS  the contract's own balance is zero  - 0
+PASS  every account ends where the settlement table says: the finder up two rewards, the owner and the impostor down one each, the stranger whole  - F 2  O -1  I -1  S 0
+
+29 passed, 0 failed
+Unseen: 0x36188D3A549300fd393471a4962F0E3336672d41  https://explorer-studio.genlayer.com/address/0x36188D3A549300fd393471a4962F0E3336672d41
+transactions: 16 in 16 steps; sent a second time: none
+deploy          0x8da7ed04c29f53a94d5858f33b0b376a27a2b63205f11a1c69ea3f4cebeee393 3 agree, 0 disagree, 2 idle SUCCESS
+postBackpack    0xdacf213bb12f9aa0339bee59a6b20271ccb4d7e0dcf32324db2660a979a9f90b 3 agree, 0 disagree, 2 idle SUCCESS
+claimOwner      0xdbe7d8cc13e4818e791ac170b727bf6abb8cf89e6299bb771dce2ed6e74daef6 5 agree, 0 disagree, 0 idle SUCCESS
+claimImpostor   0x32a41f569d15ddb744a506ef6030a2027a9a82780a7f2ed55553afc0b84fe843 5 agree, 0 disagree, 0 idle SUCCESS
+postScarf       0xd2a3ba94fa7d86bd73b25c0dd78314ae01e9484254b601aed8e26330ac706fd8 3 agree, 0 disagree, 2 idle SUCCESS
+claimHalf       0x1ed18fdf9d65858f303de88fe825b2c2db6b5670db3c7ce3599ee0ce89ed418b 4 agree, 0 disagree, 1 idle SUCCESS
+claimScarf      0xddc195ca5b14b999d2f6c5a59b79b61bd4d2caf11dddd931583319b5bfe45d6b 3 agree, 0 disagree, 2 idle SUCCESS
+notesBackpack   0x7f584a7763c4cc7fce7ba1d9e031b2d1a672d8815f2d46d8335826dd3ce71b14 3 agree, 0 disagree, 2 idle SUCCESS
+revealOwner     0xbd83d928c05bcced57a8625555fe17dee5bb8c3bacb64efe130cac05a49774e2 4 agree, 0 disagree, 1 idle SUCCESS
+revealChanged   0x15b235602fb0022e561174aafba22269db681278d4da582db72de06c6fcdc08e 4 agree, 0 disagree, 1 idle ERROR
+judgeEarly      0x1bacc53a1eee9e179c798e4c013ff463668a02223f0e8d89809909afd964b80e 3 agree, 0 disagree, 2 idle ERROR
+revealImpostor  0x20846da0bbaf55d0ae30de29d7608cb06e86fa77dee46153973f52493144488d 3 agree, 0 disagree, 2 idle SUCCESS
+notesStranger   0xce8f0419802a8ac50a519357d9dbe27bd74ffd223b10cfe123b17ac1b103d278 4 agree, 0 disagree, 1 idle ERROR
+judgeBackpack   0x9e67da5bd4846d06995e78eaa885106b032b44440f8ab1a4fc35eeda0e265075 3 agree, 0 disagree, 2 idle SUCCESS
+judgeScarf      0x62b43c721f5ed7ff7ed57be866449d9e7e935e05a483bf0ae130571fa404c59d 3 agree, 0 disagree, 2 idle ERROR
+lapseScarf      0xe0845a43f3d18887b6cc8dc1089f4d467acd8a47e9bff31cf827829d37e2a6e5 3 agree, 0 disagree, 2 idle SUCCESS
