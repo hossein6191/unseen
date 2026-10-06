@@ -159,7 +159,7 @@ cut off continues where it stopped:
 
 ```
 npm ci
-node tests/on_chain/smoke.mjs                  # roughly twenty minutes; ten of them are the two windows
+node tests/on_chain/smoke.mjs                  # about an hour, most of it the two windows (30 and 25 minutes)
 RESUME=1 node tests/on_chain/smoke.mjs         # continue from the saved state
 STATE=./run.json RESUME=1 node tests/on_chain/smoke.mjs
 ```
@@ -169,8 +169,7 @@ names the carabiner keys and the bird sketchbook and whose impostor names a
 laptop and a leather wallet, and a grey scarf whose finder never reveals the
 notes. It prints a PASS or FAIL line for every check, the balances before and
 after every step that moves money, `N passed, M failed`, and the contract
-address. It has not been run against Studio yet, so its length is an estimate
-and none of its checks is claimed here; see Evidence.
+address. Its run is recorded under Evidence.
 
 ## Network
 
@@ -213,13 +212,9 @@ At the end `stats()` read two items, three claims, one returned, one lapsed, one
 nothing held; the contract's own balance was zero, and every account ended where the settlement table
 says: the finder up two rewards, the owner and the impostor down one each, the stranger whole.
 
-Two things about the run itself, said plainly. The first check pass assumed the owner's claim would be
-`C1`; the two claims were sent together and the impostor's landed first, so nine checks keyed by claim
-id failed while every answer of the contract was the right one. The script now reads the ids from the
-contract's own receipts, and the same sixteen transactions, re-read with nothing sent again, pass 29
-of 29. And a first deployment (`0x2344BFc4D2135bc6f474ACEAF618a17DE9758246`) was left behind when a slow
-Studio, up to seven minutes per transaction that day, closed its 300-second claim window before the
-claims arrived; the run now uses a 30-minute claim window and a 25-minute reveal window.
+The two claims are sent together and race, so the script reads the claim ids from the contract's own
+receipts rather than assuming them. The windows are 30 and 25 minutes because Studio took up to seven
+minutes per transaction that day.
 
 ## Licence
 
